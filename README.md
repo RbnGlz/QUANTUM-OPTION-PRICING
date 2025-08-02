@@ -1,69 +1,87 @@
 # Codificación cuántica de distribuciones empíricas de precios al vencimiento
 
-Este repositorio implementa una técnica avanzada para codificar distribuciones empíricas de precios de activos financieros al vencimiento en un estado cuántico, utilizando Qiskit y codificación por amplitud. Esta metodología es relevante para aplicaciones de pricing de opciones y simulaciones financieras en computadoras cuánticas.
+![Quantum Circuit Example](https://user-images.githubusercontent.com/your-repo/quantum-circuit-example.png)
 
-## Descripción general
+Este repositorio implementa técnicas avanzadas de computación cuántica para codificar distribuciones empíricas de precios de activos financieros al vencimiento en un estado cuántico, utilizando Qiskit y codificación por amplitud. Es relevante para pricing de opciones y simulaciones financieras en computadoras cuánticas.
 
-La codificación por amplitud permite representar una distribución de probabilidad discreta en el estado de un registro de qubits, de modo que la probabilidad de medir cada estado base corresponde a la probabilidad empírica de un rango de precios discretizado. Esto es fundamental para algoritmos cuánticos de finanzas, como el pricing de opciones y la estimación de riesgos.
+---
 
-## Estructura del código
+## Ejemplo visual: Histograma y circuito cuántico
 
-El archivo principal es `model/empirical_amplitude_encoding.py`, que incluye:
+```python
+import matplotlib.pyplot as plt
+from model.discretizacion_normalizacion import discretize_prices
+from model.distribucion_empirica import generate_skewed_distribution
 
-- **Preprocesamiento de datos:** Discretización y normalización de precios históricos al vencimiento.
-- **Codificación cuántica:** Preparación de un circuito cuántico que codifica la distribución empírica mediante la inicialización de amplitudes.
-- **Mitigación de errores:** Inclusión de un modelo de ruido simple para simular y mitigar errores típicos de hardware cuántico.
-- **Verificación:** Cálculo de la fidelidad entre el estado cuántico preparado y la distribución objetivo.
-- **Comparativa clásica:** Comparación entre la distribución cuántica simulada y el histograma clásico.
+# Generar datos sintéticos
+prices = generate_skewed_distribution(n_samples=10000, spot=100, skew=-3, scale=20, seed=42)
+probs, amplitudes, bins = discretize_prices(prices, n_qubits=4)
+plt.bar(range(len(probs)), probs)
+plt.xlabel('Bin'); plt.ylabel('Probabilidad'); plt.title('Distribución discretizada'); plt.show()
+```
 
-## Ejecución y pruebas
+![Ejemplo de histograma](https://user-images.githubusercontent.com/your-repo/histograma-ejemplo.png)
 
-Puedes ejecutar el archivo pasando un CSV con precios reales o bien usar datos simulados.
+```python
+from model.inicializar_estado import initialize_state
+qc, probs_measured = initialize_state(amplitudes)
+print(qc.draw('mpl'))  # Visualiza el circuito cuántico
+```
 
-### Instalación de dependencias
+---
 
+## Ejemplo de uso
+
+### Instalación
 ```bash
 pip install -r requirements.txt
 ```
 
 ### Ejecución con datos reales
-
 ```bash
-python model/empirical_amplitude_encoding.py --csv datos_opciones.csv --column price --n-qubits 4
+python model/empirical_amplitude_encoding.py --csv datos_opciones.csv --column price --n-qubits 4 --mitigation bitflip
 ```
 
-### Ejecución con datos simulados (pruebas rápidas)
-
+### Ejecución con datos sintéticos y mitigación avanzada
 ```bash
-python model/empirical_amplitude_encoding.py --csv data.csv --column price
+python model/empirical_amplitude_encoding.py --csv synthetic --n-qubits 4 --mitigation dd
 ```
 
-El script simula precios al vencimiento, discretiza y normaliza los datos, prepara el estado cuántico, simula la mitigación de errores y verifica la fidelidad de la codificación.
-
-## Conceptos clave
-
-- **Codificación por amplitud:** Técnica para preparar un estado cuántico \( \sum_i \sqrt{p_i} |i\rangle \) donde \( p_i \) es la probabilidad de cada bin de precios.
-- **Discretización:** Los precios se agrupan en bins definidos por el número de qubits, permitiendo mapear los precios a estados computacionales.
-- **Fidelidad:** Métrica que mide la similitud entre el estado cuántico preparado y el estado objetivo. Es crucial para validar la calidad de la codificación.
-- **Mitigación de errores:** Estrategias para reducir el impacto de errores inherentes al hardware cuántico, aquí ejemplificado con un modelo de bit-flip.
-
-## Justificación matemática
-
-La codificación por amplitud se basa en preparar un estado cuántico donde la probabilidad de medir cada estado base \( |i\rangle \) es igual a la probabilidad empírica del bin correspondiente. Esto se logra inicializando el registro de qubits con amplitudes proporcionales a la raíz cuadrada de las probabilidades normalizadas.
-
-## Referencias
-
-- Stamatopoulos, N., Egger, D. J., Sun, Y., Zoufal, C., Iten, R., Shen, N., & Woerner, S. (2019). Option Pricing using Quantum Computers. Quantum, 4, 291. [arXiv:1905.02666](https://arxiv.org/abs/1905.02666)
-- Qiskit Textbook: [Quantum Amplitude Encoding](https://qiskit.org/textbook/ch-applications/finance.html)
-
-## Ampliación y recomendaciones
-
-- Puedes adaptar el número de qubits y los límites de precios según la resolución deseada y la disponibilidad de hardware.
-- Para datos reales, asegúrate de limpiar y filtrar outliers antes de la discretización.
-- La mitigación de errores puede mejorarse usando técnicas más avanzadas según el backend cuántico utilizado.
-- Este enfoque es la base para algoritmos cuánticos de pricing de opciones, estimación de VaR y simulaciones de Monte Carlo cuánticas.
+### Opciones de mitigación disponibles
+- `bitflip`: Modelo simple de bit-flip (por defecto)
+- `readout`: Simulación de readout error mitigation (requiere hardware real para calibración)
+- `dd`: Dynamical decoupling (transpilación avanzada)
+- `none`: Sin mitigación
 
 ---
 
-Para cualquier duda o ampliación, consulta los comentarios en el código fuente o las referencias académicas incluidas.
+## Cambios recientes
+- Unificación de la lógica de discretización en `discretizacion-normalizacion.py`.
+- Mejora de la mitigación de errores cuánticos: ahora se soportan técnicas modernas (`bitflip`, `readout`, `dd`).
+- Permite generación sintética de datos desde CLI (`--csv synthetic`).
+- Ejemplos visuales y de uso añadidos.
+
+---
+
+## Estructura del código
+- `model/empirical_amplitude_encoding.py`: Flujo principal y CLI.
+- `model/discretizacion-normalizacion.py`: Discretización y normalización de precios.
+- `model/distribucion-empirica.py`: Generación de distribuciones sintéticas.
+- `model/inicializar-estado.py`: Inicialización y visualización de estados cuánticos.
+
+---
+
+## Referencias
+- Stamatopoulos, N., et al. (2019). Option Pricing using Quantum Computers. [arXiv:1905.02666](https://arxiv.org/abs/1905.02666)
+- Qiskit Textbook: [Quantum Amplitude Encoding](https://qiskit.org/textbook/ch-applications/finance.html)
+
+---
+
+## Contribución y comunidad
+¿Quieres contribuir? Abre un issue o pull request siguiendo las plantillas en `.github/`.
+
+---
+
+## Licencia
+Ver archivo LICENSE.
 
