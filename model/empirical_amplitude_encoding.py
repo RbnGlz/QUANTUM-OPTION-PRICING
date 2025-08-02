@@ -2,9 +2,6 @@
 Implementación de codificación cuántica de una distribución empírica de precios al vencimiento
 usando Qiskit y codificación por amplitud.
 
-Autor: [Tu Nombre]
-Fecha: [Fecha Actual]
-
 Referencias:
 - Stamatopoulos et al., "Option Pricing using Quantum Computers", Quantum, 2019.
 - Qiskit Textbook: https://qiskit.org/textbook/ch-applications/finance.html
